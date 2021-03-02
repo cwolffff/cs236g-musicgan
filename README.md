@@ -16,7 +16,7 @@ The folder `lakh-pianoroll-dataset` is a clone from the ![https://github.com/sal
 python converter.py path/to/pop909root path/to/dst
 ```
 
-This has already been done. The results are stored in the `data/` directory.
+This has already been done. The results are stored in the `data` directory.
 
 
-The key files are in the `notebooks` directory. The `data_eventbased.ipynb` notebook converts POP909 to an event-based representation, similar to MIDI. This representation was used during early stages of the project, but not anymore. `training.ipynb` loads the data from `data/` and trains a DC-GAN.
+The key files are in the `notebooks` directory. The `data_eventbased.ipynb` notebook converts POP909 to an event-based representation, similar to MIDI. This representation was used during early stages of the project, but not anymore. `training.ipynb` loads the data from `data` and trains a DC-GAN.
