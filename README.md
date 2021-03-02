@@ -28,4 +28,4 @@ conda activate musicgan
 python -m ipykernel install --user --name=musicgan
 ```
 
-Then, launch a jupyter notebook via `jupyter notebook`, open `notebooks/training.ipynb` and run all cells. It's possible that some of the pip packages didn't make it into the `environment.yml` file, due to some integrations issues with `pip` and `conda`. In that case, you need to `pip install` the missing package if a "Missing package" error comes up.
+Then, launch a jupyter notebook via `jupyter notebook`, open `notebooks/training.ipynb` and run all cells. It's possible that some of the pip packages didn't make it into the `environment.yml` file, due to some integrations issues with `pip` and `conda`. In that case, you need to `pip install` the missing package if a "Missing package" error comes up. The final cell of the notebook will display a plot of the loss curves and samples from the generator that can be used to evaluate the training process.
