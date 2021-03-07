@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pretty_midi as pyd
+import torch
 
 
 @dataclass
@@ -24,6 +25,38 @@ def get_chord(chords, t):
         if chord.start_time <= t and chord.end_time >= t:
             return chord
     return None
+
+
+def _merge_1d(arrays, dtype=torch.int64, pad_value=0):
+    lengths = [(a != pad_value).sum() for a in arrays]
+    padded = torch.zeros(len(arrays), max(lengths), dtype=dtype)
+    for i, seq in enumerate(arrays):
+        end = lengths[i]
+        padded[i, :end] = seq[:end]
+    return padded
+
+
+def collate_fn(examples):
+    """Create batch tensors from a list of individual examples. Merge examples
+    of different length by padding all examples to the maximum length in the batch.
+
+    Args:
+        examples (list): List of tuples of the form (notes, chords).
+
+    Returns:
+        examples (tuple): Tuple of tensors (notes, chords). All of shape (batch_size, ...).
+
+    Adapted from:
+        https://github.com/yunjey/seq2seq-dataloader
+    """
+    notes = [ex["notes"] for ex in examples]
+    chords = [ex["chords"] for ex in examples]
+
+    # Merge into batch tensors
+    notes = torch.stack(notes)
+    chords = _merge_1d(chords)
+
+    return notes, chords
 
 
 class ReprProcessor(ABC):
