@@ -8,7 +8,6 @@
 
 # In[2]:
 
-
 import csv
 import itertools
 import pickle
@@ -21,7 +20,7 @@ import numpy as np
 import pretty_midi
 import pypianoroll
 import torch
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 from pprint import pprint
 from torch import nn
 from torch.nn import functional as F
@@ -94,8 +93,8 @@ def load_chord_vocab(vocab_path):
 # In[5]:
 
 
-make_chord_vocab("../pop909/original", "../data/chord_vocab.txt")
-chord_vocab = load_chord_vocab("../data/chord_vocab.txt")
+make_chord_vocab("pop909/original", "data/chord_vocab.txt")
+chord_vocab = load_chord_vocab("data/chord_vocab.txt")
 CHORD_VOCAB_SIZE = len(chord_vocab)
 
 
@@ -129,7 +128,7 @@ def get_chord_data(data_root, chord_vocab):
 # In[7]:
 
 
-song_to_chords = get_chord_data("../pop909/original", chord_vocab)
+song_to_chords = get_chord_data("pop909/original", chord_vocab)
 
 
 # In[8]:
@@ -143,7 +142,7 @@ song_to_chords = get_chord_data("../pop909/original", chord_vocab)
 # In[9]:
 
 
-# m = pypianoroll.load("../data/001/001.npz")
+# m = pypianoroll.load(".data/001/001.npz")
 # m.trim(end=12 * 96);
 
 
@@ -161,7 +160,7 @@ song_to_chords = get_chord_data("../pop909/original", chord_vocab)
 # In[11]:
 
 
-ROOT_DIR = "../data"
+ROOT_DIR = "data"
 song_names = []
 for candidate in sorted(os.listdir(ROOT_DIR)):
     if os.path.exists(os.path.join(ROOT_DIR, candidate, f"{candidate}.npz")):
@@ -205,7 +204,7 @@ N_MEASURES = 2  # number of measures per sample
 # Training
 BATCH_SIZE = 16
 LATENT_DIM = 128
-N_STEPS = 20000
+N_STEPS = 50000
 
 # Sampling
 SAMPLE_INTERVAL = 100  # interval to run the sampler (in step)
@@ -255,6 +254,9 @@ N_SAMPLES = 4
 #             continue
 #         note_data.append(pianoroll[:, start:end])
 #         chord_data.append(chords)
+
+note_data = torch.load("data/note_data.pt")
+chord_data = torch.load("data/chord_data.pt")
 
 
 # In[15]:
@@ -313,9 +315,9 @@ class MusicDataset(torch.utils.data.Dataset):
 # In[ ]:
 
 
-# TEMPO = 100
+TEMPO = 100
+tempo_array = np.full((4 * 4 * MEASURE_RESOLUTION, 1), TEMPO)
 
-# tempo_array = np.full((4 * 4 * MEASURE_RESOLUTION, 1), TEMPO)
 # tracks = []
 # sample_data = np.expand_dims(note_data_np, 1)[:4]  # Add fake track dim
 # pianoroll = np.pad(np.concatenate(sample_data, 1)[0], ((0, 0), (LOWEST_PITCH, 128 - LOWEST_PITCH - N_PITCHES)))
@@ -797,7 +799,7 @@ if torch.cuda.is_available():
 history_samples = {}
 
 # Create a LiveLoss logger instance for monitoring.
-liveloss = PlotLosses(outputs=[MatplotlibPlot(cell_size=(6, 2))])
+# liveloss = PlotLosses(outputs=[MatplotlibPlot(cell_size=(6, 2))])
 
 
 # In[ ]:
@@ -820,12 +822,12 @@ g_losses = []
 
 
 # Create a progress bar instance for monitoring
-# progress_bar = tqdm(total=N_STEPS, initial=step, ncols=80, mininterval=1)
-EXP_NAME = "test-01"
+progress_bar = tqdm(total=N_STEPS, initial=step, ncols=80, mininterval=1)
+EXP_NAME = "test-02"
 LOG_EVERY_N = 100
 SAVE_EVERY_N = 10000
 
-EXP_DIR = os.path.join("../save", EXP_NAME)
+EXP_DIR = os.path.join("./save", EXP_NAME)
 os.makedirs(EXP_DIR)
 
 # Start iterations
@@ -845,13 +847,13 @@ while step < N_STEPS + 1:
         else:
             running_d_loss, running_g_loss = 0.0, 0.0
         # liveloss.update({'negative_critic_loss': -running_d_loss})
-        liveloss.update({'d_loss': running_d_loss, 'g_loss': running_g_loss})
+        # liveloss.update({'d_loss': running_d_loss, 'g_loss': running_g_loss})
         d_losses.append(d_loss.item())
         g_losses.append(g_loss.item())
         
         # Update losses to progress bar
-        # progress_bar.set_description_str(
-        #     "(d_loss={: 8.6f}, g_loss={: 8.6f})".format(d_loss, g_loss))
+        progress_bar.set_description_str(
+            "(d_loss={: 8.6f}, g_loss={: 8.6f})".format(d_loss, g_loss))
         
         if step % SAMPLE_INTERVAL == 0:
             # Get generated samples
@@ -860,9 +862,9 @@ while step < N_STEPS + 1:
             history_samples[step] = samples
 
             # Display loss curves
-            clear_output(True)
-            if step > 0:
-                liveloss.send()
+            # clear_output(True)
+            # if step > 0:
+            #     liveloss.send()
             
             # Display generated samples
             samples = np.expand_dims(samples, 1)  # Add fake track dim
@@ -896,7 +898,8 @@ while step < N_STEPS + 1:
                         ax.axvline(x - 0.5, color='k')
                     else:
                         ax.axvline(x - 0.5, color='k', linestyle='-', linewidth=1)
-            plt.show()
+            # plt.show()
+            plt.savefig(os.path.join(EXP_DIR, f"sample_output_{step}.png"))
         
         if step % LOG_EVERY_N == 0:
             print(f"Step {step} \t D-loss: {d_loss:.6f} \t G-loss: {g_loss:.6f}")
@@ -905,7 +908,7 @@ while step < N_STEPS + 1:
             save_state(EXP_DIR, step + 1, generator, discriminator, g_optimizer, d_optimizer)
             
         step += 1
-        # progress_bar.update(1)
+        progress_bar.update(1)
         if step >= N_STEPS:
             break
 
