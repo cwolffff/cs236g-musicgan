@@ -19,7 +19,7 @@ python converter.py path/to/pop909root path/to/dst
 This has already been done. The results are stored in the `data` directory.
 
 
-The key files are in the `notebooks` directory. The `data_eventbased.ipynb` notebook converts POP909 to an event-based representation, similar to MIDI. This representation was used during early stages of the project, but not anymore. `training.ipynb` loads the data from `data` and trains a DC-GAN.
+The key files are in the `notebooks` directory. The `data_eventbased.ipynb` notebook converts POP909 to an event-based representation, similar to MIDI. This representation was used during early stages of the project, but not anymore. `baseline.ipynb` loads the data from `data` and trains a simple DC-GAN. `main.ipynb` trains our model, which is similar to the baseline but takes the chords into account.
 
 To run the experiment, first activate the conda environment and then create a jupyter kernel based on the environment.
 
@@ -28,4 +28,8 @@ conda activate musicgan
 python -m ipykernel install --user --name=musicgan
 ```
 
-Then, launch a jupyter notebook via `jupyter notebook`, open `notebooks/training.ipynb` and run all cells. It's possible that some of the pip packages didn't make it into the `environment.yml` file, due to some integrations issues with `pip` and `conda`. In that case, you need to `pip install` the missing package if a "Missing package" error comes up. The final cell of the notebook will display a plot of the loss curves and samples from the generator that can be used to evaluate the training process.
+Then, launch a jupyter notebook via `jupyter notebook`, open `notebooks/main.ipynb` and run all cells. It's possible that some of the pip packages didn't make it into the `environment.yml` file, due to some integrations issues with `pip` and `conda`. In that case, you need to `pip install` the missing package if a "Missing package" error comes up. The final cell of the notebook will display a plot of the loss curves and samples from the generator that can be used to evaluate the training process.
+
+## Audio samples
+
+The `save` directory contains sample generator outputs from various experiments. We generated sample outputs every 1000 steps. The number in the midi file name represents the number of steps of training that have been done before the sample was generated.
